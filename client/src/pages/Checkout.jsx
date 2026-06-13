@@ -59,6 +59,7 @@ export default function Checkout() {
 
       await clearCart();
       setSuccess(true);
+      window.scrollTo({ top: 0, behavior: 'instant' });
     } catch (err) {
       console.error(err);
       setError('Failed to place order. Please check your network and try again.');
@@ -255,7 +256,7 @@ export default function Checkout() {
                     <div className="flex-1">
                       <div className="font-body-lg text-on-surface leading-tight mb-1">{item.title}</div>
                       <div className="text-on-surface-variant text-sm">{item.size && `Size: ${item.size} | `}Qty: {item.quantity}</div>
-                      <div className="text-on-surface font-bold mt-1">${totalItemPrice.toFixed(2)}</div>
+                      <div className="text-on-surface font-bold mt-1">₹{totalItemPrice.toFixed(2)}</div>
                     </div>
                   </div>
                 );
@@ -265,7 +266,7 @@ export default function Checkout() {
             <div className="space-y-3 border-t border-outline-variant pt-6 mb-6">
               <div className="flex justify-between text-on-surface-variant">
                 <span>Subtotal</span>
-                <span>${cartTotal.toFixed(2)}</span>
+                <span>₹{cartTotal.toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-on-surface-variant">
                 <span>Shipping</span>
@@ -273,11 +274,11 @@ export default function Checkout() {
               </div>
               <div className="flex justify-between text-on-surface-variant">
                 <span>Estimated Tax</span>
-                <span>${estimatedTax.toFixed(2)}</span>
+                <span>₹{estimatedTax.toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-on-surface text-headline-sm font-bold pt-3 border-t border-dashed border-outline-variant">
                 <span>Total</span>
-                <span className="text-primary">${grandTotal.toFixed(2)}</span>
+                <span className="text-primary">₹{grandTotal.toFixed(2)}</span>
               </div>
             </div>
           </div>

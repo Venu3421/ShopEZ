@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import * as adminService from '../services/admin';
 import * as ordersService from '../services/orders';
 import SkeletonLoader from '../components/common/SkeletonLoader';
@@ -47,6 +48,14 @@ export default function AdminOrders() {
 
   return (
     <main className="min-h-screen bg-background text-on-surface pt-32 pb-stack-xl max-w-container-max mx-auto px-6 md:px-margin-desktop">
+      {/* Back button */}
+      <Link
+        to="/admin/dashboard"
+        className="inline-flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors mb-6 font-semibold text-sm w-fit"
+      >
+        <span className="material-symbols-outlined text-lg">arrow_back</span> Back to Dashboard
+      </Link>
+
       <div className="border-b border-outline-variant/20 pb-4 mb-8">
         <h1 className="font-headline-sm sm:font-headline-md font-bold text-on-surface">Manage Orders</h1>
         <p className="text-xs text-on-surface-variant mt-1">Review and update customer transactions and delivery states</p>
@@ -102,7 +111,7 @@ export default function AdminOrders() {
                         {new Date(order.orderDate).toLocaleDateString()}
                       </td>
                       <td className="py-3.5 px-4 font-extrabold text-primary">
-                        ${totalOrderPrice.toFixed(2)}
+                        ₹{totalOrderPrice.toFixed(2)}
                       </td>
                       <td className="py-3.5 px-4">
                         <span className={`px-2.5 py-0.5 text-[10px] font-bold rounded-lg border uppercase tracking-wider ${getStatusColor(order.orderStatus)}`}>

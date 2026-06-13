@@ -19,10 +19,12 @@ export default function EditProduct() {
     price: '',
     discount: '0',
     rating: '4.5',
+    stock: '10',
     sizes: { XS: false, S: false, M: false, L: false, XL: false, XXL: false },
+    sizeStock: { XS: '10', S: '10', M: '10', L: '10', XL: '10', XXL: '10' },
   });
 
-  const categories = ['Shirts', 'Pants', 'Shoes', 'Accessories', 'Jackets', 'Dresses'];
+  const categories = ['Shirts', 'Pants', 'Shoes', 'Accessories', 'Jackets', 'Dresses', 'Electronics', 'Home Decor'];
   const genders = ['men', 'women', 'kids', 'unisex'];
 
   useEffect(() => {
@@ -40,6 +42,17 @@ export default function EditProduct() {
           });
         }
 
+        // Map sizeStock
+        const sizeStockMap = { XS: '10', S: '10', M: '10', L: '10', XL: '10', XXL: '10' };
+        if (data.sizeStock) {
+          const stockObj = data.sizeStock;
+          Object.keys(sizeStockMap).forEach((sz) => {
+            if (stockObj[sz] !== undefined) {
+              sizeStockMap[sz] = stockObj[sz].toString();
+            }
+          });
+        }
+
         setFormData({
           title: data.title || '',
           description: data.description || '',
@@ -51,6 +64,8 @@ export default function EditProduct() {
           discount: data.discount ? data.discount.toString() : '0',
           rating: data.rating ? data.rating.toString() : '4.5',
           sizes: sizeMap,
+          sizeStock: sizeStockMap,
+          stock: data.stock ? data.stock.toString() : '10',
         });
       } catch (err) {
         console.error(err);
@@ -80,7 +95,14 @@ export default function EditProduct() {
     setError('');
 
     try {
-      const selectedSizes = Object.keys(formData.sizes).filter((size) => formData.sizes[size]);
+      const isSizeDisabledCategory = formData.category?.toLowerCase() === 'electronics' || formData.category?.toLowerCase() === 'home decor' || formData.category?.toLowerCase() === 'home & decor';
+      const selectedSizes = isSizeDisabledCategory ? [] : Object.keys(formData.sizes).filter((size) => formData.sizes[size]);
+      const filteredSizeStock = {};
+      if (!isSizeDisabledCategory) {
+        selectedSizes.forEach((sz) => {
+          filteredSizeStock[sz] = Number(formData.sizeStock[sz]) || 0;
+        });
+      }
 
       const payload = {
         title: formData.title,
@@ -92,7 +114,9 @@ export default function EditProduct() {
         price: Number(formData.price),
         discount: Number(formData.discount),
         rating: Number(formData.rating),
+        stock: isSizeDisabledCategory ? Number(formData.stock || 0) : undefined,
         sizes: selectedSizes,
+        sizeStock: isSizeDisabledCategory ? undefined : filteredSizeStock,
       };
 
       await productsService.updateProduct(id, payload);
@@ -119,10 +143,10 @@ export default function EditProduct() {
     <main className="min-h-screen bg-background text-on-surface pt-32 pb-stack-xl max-w-container-max mx-auto px-6 md:px-margin-desktop">
       {/* Back button */}
       <Link
-        to="/admin/products"
+        to="/admin/dashboard"
         className="inline-flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors mb-6 font-semibold text-sm w-fit"
       >
-        <span className="material-symbols-outlined text-lg">arrow_back</span> Back to Products
+        <span className="material-symbols-outlined text-lg">arrow_back</span> Back to Dashboard
       </Link>
 
       <div className="border-b border-outline-variant/20 pb-4 mb-8">
@@ -160,7 +184,7 @@ export default function EditProduct() {
               <div className="grid grid-cols-3 gap-4">
                 <div className="space-y-2 col-span-1">
                   <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider block">
-                    Price ($) *
+                    Price (₹) *
                   </label>
                   <input
                     type="number"
@@ -276,32 +300,80 @@ export default function EditProduct() {
                 ></textarea>
               </div>
 
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider block mb-1">
-                  Available Sizes
-                </label>
-                <div className="flex flex-wrap gap-2.5">
-                  {Object.keys(formData.sizes).map((size) => (
-                    <label
-                      key={size}
-                      className={`flex items-center gap-2 cursor-pointer bg-surface-container-low px-3.5 py-2 rounded-xl border transition-all ${
-                        formData.sizes[size]
-                          ? 'border-primary bg-primary/5 text-primary font-bold'
-                          : 'border-outline-variant/30 hover:border-primary/30 text-on-surface-variant'
-                      }`}
-                    >
+              {(() => {
+                const isSizeDisabledCategory = formData.category?.toLowerCase() === 'electronics' || formData.category?.toLowerCase() === 'home decor' || formData.category?.toLowerCase() === 'home & decor';
+                if (isSizeDisabledCategory) {
+                  return (
+                    <div className="space-y-2 col-span-2">
+                      <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider block">
+                        Stock Quantity *
+                      </label>
                       <input
-                        type="checkbox"
-                        name={size}
-                        checked={formData.sizes[size]}
+                        type="number"
+                        min="0"
+                        name="stock"
+                        required
+                        value={formData.stock || ''}
                         onChange={handleChange}
-                        className="w-4 h-4 text-primary rounded focus:ring-primary/10"
+                        placeholder="e.g. 50"
+                        className="w-full px-4 py-3 rounded-xl bg-surface-container-low border border-outline-variant/40 text-on-surface placeholder-on-surface-variant/50 focus:ring-2 focus:ring-primary/10 focus:border-primary outline-none transition-all text-sm"
                       />
-                      <span className="text-xs">{size}</span>
+                    </div>
+                  );
+                }
+                return (
+                  <div className="space-y-2 col-span-2">
+                    <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider block mb-2">
+                      Available Sizes & Stock Pieces
                     </label>
-                  ))}
-                </div>
-              </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                      {Object.keys(formData.sizes).map((size) => {
+                        const isChecked = formData.sizes[size];
+                        return (
+                          <div
+                            key={size}
+                            className={`flex flex-col gap-2 p-3 rounded-xl border transition-all ${
+                              isChecked
+                                ? 'border-primary bg-primary/5'
+                                : 'border-outline-variant/30 bg-surface-container-low'
+                            }`}
+                          >
+                            <label className="flex items-center gap-2 cursor-pointer text-on-surface font-semibold text-xs">
+                              <input
+                                type="checkbox"
+                                name={size}
+                                checked={isChecked}
+                                onChange={handleChange}
+                                className="w-4 h-4 text-primary rounded focus:ring-primary/10"
+                              />
+                              <span>Size {size}</span>
+                            </label>
+                            {isChecked && (
+                              <input
+                                type="number"
+                                min="0"
+                                placeholder="Pieces"
+                                value={formData.sizeStock?.[size] !== undefined ? formData.sizeStock[size] : '10'}
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  setFormData((prev) => ({
+                                    ...prev,
+                                    sizeStock: {
+                                      ...prev.sizeStock,
+                                      [size]: val === '' ? '' : Math.max(0, parseInt(val) || 0)
+                                    }
+                                  }));
+                                }}
+                                className="w-full px-2.5 py-1.5 rounded-lg bg-white border border-outline-variant/40 text-on-surface text-xs outline-none focus:ring-1 focus:ring-primary"
+                              />
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           </div>
 

@@ -80,6 +80,10 @@ const login = async (req, res) => {
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
+    if (user.userType === "customer" && user.isBlocked) {
+      return res.status(403).json({ message: "Your account has been blocked. Please contact support." });
+    }
+
     res.json({
       _id: user._id,
       username: user.username,

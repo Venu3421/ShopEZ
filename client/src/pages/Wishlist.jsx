@@ -88,15 +88,15 @@ const Wishlist = () => {
                       {hasDiscount ? (
                         <div className="flex flex-col">
                           <span className="text-on-surface-variant text-[9px] line-through">
-                            ${product.price.toFixed(2)}
+                            ₹{product.price.toFixed(2)}
                           </span>
                           <span className="font-bold text-xs text-primary">
-                            ${discountedPrice}
+                            ₹{discountedPrice}
                           </span>
                         </div>
                       ) : (
                         <span className="font-bold text-xs text-primary">
-                          ${product.price?.toFixed(2)}
+                          ₹{product.price?.toFixed(2)}
                         </span>
                       )}
                     </div>

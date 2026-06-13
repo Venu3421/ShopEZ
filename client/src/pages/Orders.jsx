@@ -126,7 +126,8 @@ export default function Orders() {
 
   return (
     <main className="min-h-screen bg-background text-on-surface pt-32 pb-stack-xl px-margin-desktop max-w-container-max mx-auto selection:bg-primary-fixed selection:text-primary">
-      {/* View Toggle */}
+      <div className="print:hidden">
+        {/* View Toggle */}
       <div className="flex gap-4 mb-stack-lg border-b border-outline-variant">
         <button
           onClick={() => setView('success')}
@@ -239,7 +240,7 @@ export default function Orders() {
                         {order.orderStatus || 'Placed'}
                       </span>
                       <div className="h-8 w-px bg-outline-variant"></div>
-                      <span className="font-bold text-headline-sm text-on-surface">${totalOrderPrice.toFixed(2)}</span>
+                      <span className="font-bold text-headline-sm text-on-surface">₹{totalOrderPrice.toFixed(2)}</span>
                     </div>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-6 border-t border-outline-variant">
@@ -286,11 +287,12 @@ export default function Orders() {
           </div>
         </section>
       )}
+      </div>
 
       {/* Invoice Modal */}
       {selectedInvoice && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/55 backdrop-blur-sm print:p-0 print:bg-white print:relative">
-          <div className="bg-white rounded-3xl w-full max-w-2xl overflow-hidden shadow-2xl border border-outline-variant/30 flex flex-col max-h-[90vh] print:max-h-none print:shadow-none print:border-none print:w-full">
+        <div id="invoice-print-modal" className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/55 backdrop-blur-sm print:p-0 print:bg-white print:absolute print:inset-0 print:z-[9999]">
+          <div id="invoice-print-dialog" className="bg-white rounded-3xl w-full max-w-2xl overflow-hidden shadow-2xl border border-outline-variant/30 flex flex-col max-h-[90vh] print:max-h-none print:shadow-none print:border-none print:w-full print:m-0 print:p-0">
             {/* Modal Header */}
             <div className="px-8 py-5 border-b border-outline-variant/20 flex justify-between items-center bg-surface-container-low print:hidden">
               <h3 className="font-bold text-lg text-on-surface">Invoice Receipt</h3>
@@ -347,9 +349,9 @@ export default function Orders() {
                       <td className="px-6 py-4 font-semibold text-on-surface">{selectedInvoice.title}</td>
                       <td className="px-6 py-4 text-center font-medium">{selectedInvoice.size || 'M'}</td>
                       <td className="px-6 py-4 text-center font-medium">{selectedInvoice.quantity}</td>
-                      <td className="px-6 py-4 text-right font-medium">${selectedInvoice.price.toFixed(2)}</td>
+                      <td className="px-6 py-4 text-right font-medium">₹{selectedInvoice.price.toFixed(2)}</td>
                       <td className="px-6 py-4 text-right font-bold text-primary">
-                        ${((selectedInvoice.price - (selectedInvoice.price * (selectedInvoice.discount || 0)) / 100) * selectedInvoice.quantity).toFixed(2)}
+                        ₹{((selectedInvoice.price - (selectedInvoice.price * (selectedInvoice.discount || 0)) / 100) * selectedInvoice.quantity).toFixed(2)}
                       </td>
                     </tr>
                   </tbody>
@@ -361,12 +363,12 @@ export default function Orders() {
                 <div className="w-64 space-y-3 text-sm font-medium text-on-surface-variant font-body-md">
                   <div className="flex justify-between">
                     <span>Subtotal</span>
-                    <span className="font-bold text-on-surface">${(selectedInvoice.price * selectedInvoice.quantity).toFixed(2)}</span>
+                    <span className="font-bold text-on-surface">₹{(selectedInvoice.price * selectedInvoice.quantity).toFixed(2)}</span>
                   </div>
                   {selectedInvoice.discount > 0 && (
                     <div className="flex justify-between text-error bg-error/5 px-2 py-0.5 rounded-lg">
                       <span>Discount ({selectedInvoice.discount}%)</span>
-                      <span className="font-bold">-${((selectedInvoice.price * selectedInvoice.discount / 100) * selectedInvoice.quantity).toFixed(2)}</span>
+                      <span className="font-bold">-₹{((selectedInvoice.price * selectedInvoice.discount / 100) * selectedInvoice.quantity).toFixed(2)}</span>
                     </div>
                   )}
                   <div className="flex justify-between">
@@ -376,7 +378,7 @@ export default function Orders() {
                   <div className="border-t border-outline-variant/30 pt-3 flex justify-between items-baseline">
                     <span className="text-base font-bold text-on-surface">Grand Total</span>
                     <span className="text-xl font-black text-primary">
-                      ${((selectedInvoice.price - (selectedInvoice.price * (selectedInvoice.discount || 0)) / 100) * selectedInvoice.quantity).toFixed(2)}
+                      ₹{((selectedInvoice.price - (selectedInvoice.price * (selectedInvoice.discount || 0)) / 100) * selectedInvoice.quantity).toFixed(2)}
                     </span>
                   </div>
                 </div>
@@ -420,18 +422,72 @@ export default function Orders() {
         }
         .glass-card { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(226, 232, 240, 1); }
 
+        @page {
+          size: A4 portrait;
+          margin: 12mm;
+        }
+
         @media print {
+          html, body, #root {
+            width: 100% !important;
+            height: auto !important;
+            min-height: 0 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            overflow: visible !important;
+            background: white !important;
+          }
+          #root > div,
+          #root > div > main,
+          #root > div > main > main {
+            display: block !important;
+            height: auto !important;
+            min-height: 0 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            max-width: none !important;
+          }
+          nav, footer {
+            display: none !important;
+          }
           body * {
             visibility: hidden;
           }
           #invoice-print-area, #invoice-print-area * {
             visibility: visible;
           }
+          #invoice-print-modal {
+            position: static !important;
+            inset: auto !important;
+            display: block !important;
+            width: 100% !important;
+            height: auto !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            background: white !important;
+            backdrop-filter: none !important;
+          }
+          #invoice-print-dialog {
+            display: block !important;
+            width: 100% !important;
+            max-width: none !important;
+            max-height: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            overflow: visible !important;
+            border: none !important;
+            border-radius: 0 !important;
+            box-shadow: none !important;
+          }
           #invoice-print-area {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
+            position: static !important;
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            overflow: visible !important;
+            box-shadow: none !important;
+            border: none !important;
+            break-inside: avoid;
           }
         }
       `}</style>

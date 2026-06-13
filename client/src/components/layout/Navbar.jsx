@@ -89,18 +89,20 @@ const Navbar = () => {
 
           <div className="flex items-center gap-1">
             {/* Wishlist */}
-            <Link
-              to="/wishlist"
-              className="p-2.5 text-on-surface-variant hover:bg-surface-container-high/50 rounded-full transition-all active:scale-95 relative"
-              aria-label="Wishlist"
-            >
-              <span className="material-symbols-outlined">favorite</span>
-              {wishlistCount > 0 && (
-                <span className="absolute top-1 right-1 bg-error text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full font-bold">
-                  {wishlistCount > 99 ? '99+' : wishlistCount}
-                </span>
-              )}
-            </Link>
+            {user && (
+              <Link
+                to="/wishlist"
+                className="p-2.5 text-on-surface-variant hover:bg-surface-container-high/50 rounded-full transition-all active:scale-95 relative"
+                aria-label="Wishlist"
+              >
+                <span className="material-symbols-outlined">favorite</span>
+                {wishlistCount > 0 && (
+                  <span className="absolute top-1 right-1 bg-error text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full font-bold">
+                    {wishlistCount > 99 ? '99+' : wishlistCount}
+                  </span>
+                )}
+              </Link>
+            )}
 
             {/* Cart */}
             <Link
@@ -244,13 +246,15 @@ const Navbar = () => {
               All Products
             </Link>
 
-            <Link
-              to="/wishlist"
-              onClick={() => setMobileMenuOpen(false)}
-              className="block rounded-lg px-3 py-2.5 text-sm font-medium text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface"
-            >
-              Wishlist {wishlistCount > 0 && `(${wishlistCount})`}
-            </Link>
+            {user && (
+              <Link
+                to="/wishlist"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block rounded-lg px-3 py-2.5 text-sm font-medium text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface"
+              >
+                Wishlist {wishlistCount > 0 && `(${wishlistCount})`}
+              </Link>
+            )}
 
             {user ? (
               <>

@@ -63,8 +63,57 @@ const getAllOrders = async (req, res) => {
   }
 };
 
+// @desc    Delete a user
+// @route   DELETE /api/admin/users/:id
+// @access  Private/Admin
+const deleteUser = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    if (user.userType === "admin") {
+      return res.status(400).json({ message: "Cannot delete administrative accounts" });
+    }
+    
+    await User.findByIdAndDelete(req.params.id);
+    await Cart.findOneAndDelete({ userId: req.params.id });
+    res.json({ message: "User deleted successfully" });
+  } catch (error) {
+    console.error("Delete user error:", error.message);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+// @desc    Toggle block user
+// @route   PATCH /api/admin/users/:id/block
+// @access  Private/Admin
+const toggleBlockUser = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    if (user.userType === "admin") {
+      return res.status(400).json({ message: "Cannot block administrative accounts" });
+    }
+
+    user.isBlocked = !user.isBlocked;
+    await user.save();
+    res.json({
+      message: `User ${user.isBlocked ? "blocked" : "unblocked"} successfully`,
+      user,
+    });
+  } catch (error) {
+    console.error("Block user error:", error.message);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
 module.exports = {
   dashboardStats,
   getAllUsers,
   getAllOrders,
+  deleteUser,
+  toggleBlockUser,
 };

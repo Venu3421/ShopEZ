@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import * as adminService from '../services/admin';
 import SkeletonLoader from '../components/common/SkeletonLoader';
 
@@ -17,12 +18,44 @@ export default function AdminUsers() {
     }
   };
 
+  const handleToggleBlock = async (userId) => {
+    try {
+      const { data } = await adminService.toggleBlockUser(userId);
+      alert(data.message);
+      setUsers(users.map((u) => (u._id === userId ? { ...u, isBlocked: !u.isBlocked } : u)));
+    } catch (error) {
+      console.error('Failed to toggle block status', error);
+      alert(error.response?.data?.message || 'Error blocking/unblocking user');
+    }
+  };
+
+  const handleDeleteUser = async (userId) => {
+    if (window.confirm('Are you sure you want to delete this customer? This will also remove their cart.')) {
+      try {
+        const { data } = await adminService.deleteUser(userId);
+        alert(data.message);
+        setUsers(users.filter((u) => u._id !== userId));
+      } catch (error) {
+        console.error('Failed to delete user', error);
+        alert(error.response?.data?.message || 'Error deleting user');
+      }
+    }
+  };
+
   useEffect(() => {
     fetchUsers();
   }, []);
 
   return (
     <main className="min-h-screen bg-background text-on-surface pt-32 pb-stack-xl max-w-container-max mx-auto px-6 md:px-margin-desktop">
+      {/* Back button */}
+      <Link
+        to="/admin/dashboard"
+        className="inline-flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors mb-6 font-semibold text-sm w-fit"
+      >
+        <span className="material-symbols-outlined text-lg">arrow_back</span> Back to Dashboard
+      </Link>
+
       {/* Header */}
       <header className="flex justify-between items-center mb-stack-xl">
         <div>
@@ -64,9 +97,14 @@ export default function AdminUsers() {
                       </div>
                       <div>
                         <p className="font-body-md text-body-md font-semibold">{u.username}</p>
-                        {u.userType === 'admin' && (
-                          <span className="bg-primary/10 text-primary text-[9px] uppercase px-2 py-0.5 rounded-full font-bold">Admin</span>
-                        )}
+                        <div className="flex gap-1.5 mt-0.5">
+                          {u.userType === 'admin' && (
+                            <span className="bg-primary/10 text-primary text-[9px] uppercase px-2 py-0.5 rounded-full font-bold">Admin</span>
+                          )}
+                          {u.isBlocked && (
+                            <span className="bg-error/10 text-error text-[9px] uppercase px-2 py-0.5 rounded-full font-bold">Blocked</span>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </td>
@@ -81,12 +119,26 @@ export default function AdminUsers() {
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex justify-end gap-3">
-                      <button className="px-4 py-1.5 border border-outline/30 rounded-full text-[11px] font-label-caps uppercase hover:bg-surface-container-highest transition-all text-error hover:border-error/30">
-                        Block User
-                      </button>
-                      <button className="px-4 py-1.5 border border-error/30 text-error rounded-full text-[11px] font-label-caps uppercase hover:bg-error/10 transition-all">
-                        Delete
-                      </button>
+                      {u.userType !== 'admin' && (
+                        <>
+                          <button
+                            onClick={() => handleToggleBlock(u._id)}
+                            className={`px-4 py-1.5 border rounded-full text-[11px] font-label-caps uppercase transition-all ${
+                              u.isBlocked
+                                ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/30 hover:bg-emerald-500/20'
+                                : 'border-outline/30 hover:bg-surface-container-highest text-error hover:border-error/30'
+                            }`}
+                          >
+                            {u.isBlocked ? 'Unblock' : 'Block User'}
+                          </button>
+                          <button
+                            onClick={() => handleDeleteUser(u._id)}
+                            className="px-4 py-1.5 border border-error/30 text-error rounded-full text-[11px] font-label-caps uppercase hover:bg-error/10 transition-all"
+                          >
+                            Delete
+                          </button>
+                        </>
+                      )}
                     </div>
                   </td>
                 </tr>

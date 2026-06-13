@@ -37,7 +37,7 @@ export default function AppRoutes() {
         <Route path="/products/:id" element={<ProductDetails />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/wishlist" element={<Wishlist />} />
+        <Route path="/wishlist" element={<ProtectedRoute><Wishlist /></ProtectedRoute>} />
 
         {/* Protected Customer Routes */}
         <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />

@@ -79,6 +79,45 @@ const createOrder = async (req, res) => {
       orderStatus: "order placed",
     });
 
+    try {
+      const Product = require("../models/Product");
+      if (productId) {
+        const product = await Product.findById(productId);
+        if (product) {
+          const orderSize = size || "M";
+          const qty = quantity || 1;
+
+          if (product.sizeStock) {
+            if (product.sizeStock instanceof Map) {
+              const currentStock = product.sizeStock.get(orderSize) || 0;
+              product.sizeStock.set(orderSize, Math.max(0, currentStock - qty));
+            } else if (typeof product.sizeStock === 'object') {
+              const currentStock = product.sizeStock[orderSize] || 0;
+              product.sizeStock[orderSize] = Math.max(0, currentStock - qty);
+            }
+          }
+
+          if (product.sizeStock) {
+            let totalStock = 0;
+            if (product.sizeStock instanceof Map) {
+              for (let [sz, st] of product.sizeStock.entries()) {
+                totalStock += (Number(st) || 0);
+              }
+            } else {
+              totalStock = Object.values(product.sizeStock).reduce((acc, val) => acc + (Number(val) || 0), 0);
+            }
+            product.stock = totalStock;
+          } else if (product.stock !== undefined) {
+            product.stock = Math.max(0, product.stock - qty);
+          }
+
+          await product.save();
+        }
+      }
+    } catch (stockError) {
+      console.error("Failed to decrement stock on order creation:", stockError.message);
+    }
+
     res.status(201).json(order);
   } catch (error) {
     console.error("Create order error:", error.message);

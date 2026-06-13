@@ -43,6 +43,14 @@ export default function AdminProducts() {
 
   return (
     <main className="min-h-screen bg-background text-on-surface pt-32 pb-stack-xl max-w-container-max mx-auto px-6 md:px-margin-desktop">
+      {/* Back button */}
+      <Link
+        to="/admin/dashboard"
+        className="inline-flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors mb-6 font-semibold text-sm w-fit"
+      >
+        <span className="material-symbols-outlined text-lg">arrow_back</span> Back to Dashboard
+      </Link>
+
       {/* Header */}
       <header className="flex justify-between items-center mb-stack-xl">
         <div>
@@ -91,6 +99,7 @@ export default function AdminProducts() {
                 <th className="px-6 py-4 font-label-caps text-label-caps text-on-surface-variant">Category</th>
                 <th className="px-6 py-4 font-label-caps text-label-caps text-on-surface-variant text-right">Price</th>
                 <th className="px-6 py-4 font-label-caps text-label-caps text-on-surface-variant text-center">Discount</th>
+                <th className="px-6 py-4 font-label-caps text-label-caps text-on-surface-variant text-center">Pieces</th>
                 <th className="px-6 py-4 font-label-caps text-label-caps text-on-surface-variant text-right">Actions</th>
               </tr>
             </thead>
@@ -109,13 +118,22 @@ export default function AdminProducts() {
                     </div>
                   </td>
                   <td className="px-6 py-4 text-sm text-on-surface-variant capitalize">{product.category} {product.gender && `(${product.gender})`}</td>
-                  <td className="px-6 py-4 text-right font-body-md font-bold text-primary">${product.price.toFixed(2)}</td>
+                  <td className="px-6 py-4 text-right font-body-md font-bold text-primary">₹{product.price.toFixed(2)}</td>
                   <td className="px-6 py-4 text-center">
                     {product.discount > 0 ? (
                       <span className="bg-primary-container/10 text-primary px-3 py-1 rounded-full text-[11px] font-bold">{product.discount}% OFF</span>
                     ) : (
                       <span className="text-on-surface-variant/40 text-xs">-</span>
                     )}
+                  </td>
+                  <td className="px-6 py-4 text-center">
+                    <span className={`px-3 py-1 rounded-full text-[11px] font-bold ${
+                      product.stock <= 5 
+                        ? 'bg-error/10 text-error' 
+                        : 'bg-emerald-500/10 text-emerald-600'
+                    }`}>
+                      {product.stock !== undefined ? product.stock : 10} pcs
+                    </span>
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex justify-end gap-2">
@@ -137,7 +155,7 @@ export default function AdminProducts() {
               ))}
               {filteredProducts.length === 0 && (
                 <tr>
-                  <td colSpan="5" className="py-8 text-center text-on-surface-variant/60 font-semibold">No products match your search.</td>
+                  <td colSpan="6" className="py-8 text-center text-on-surface-variant/60 font-semibold">No products match your search.</td>
                 </tr>
               )}
             </tbody>

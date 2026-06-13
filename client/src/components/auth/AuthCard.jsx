@@ -11,7 +11,9 @@ const AuthCard = ({ mode = 'login' }) => {
     useEffect(() => setTab(mode === 'register' ? 'register' : 'login'), [mode]);
 
     useEffect(() => {
-        if (user) navigate('/');
+        if (user) {
+            navigate(user.userType === 'admin' ? '/admin/dashboard' : '/');
+        }
     }, [user, navigate]);
 
     const [loginState, setLoginState] = useState({
@@ -59,8 +61,8 @@ const AuthCard = ({ mode = 'login' }) => {
 
         setLoading(true);
         try {
-            await login(email, password);
-            navigate('/');
+            const data = await login(email, password);
+            navigate(data?.userType === 'admin' ? '/admin/dashboard' : '/');
         } catch (err) {
             setServerError(err.response?.data?.message || 'Invalid email or password. Please try again.');
         } finally {
@@ -97,8 +99,8 @@ const AuthCard = ({ mode = 'login' }) => {
         setLoading(true);
         try {
             const username = `${registerState.firstName.trim()} ${registerState.lastName.trim()}`;
-            await register(username, registerState.email, registerState.password);
-            navigate('/');
+            const data = await register(username, registerState.email, registerState.password);
+            navigate(data?.userType === 'admin' ? '/admin/dashboard' : '/');
         } catch (err) {
             setServerError(err.response?.data?.message || 'Registration failed. Please try again.');
         } finally {
@@ -107,21 +109,9 @@ const AuthCard = ({ mode = 'login' }) => {
     };
 
     return (
-        <div className="min-h-screen bg-background text-on-surface font-body-md overflow-x-hidden selection:bg-primary-fixed selection:text-primary">
-            <main className="flex min-h-screen w-full">
-                {/* Left Side: Login Background Image */}
-                <section className="hidden md:flex relative w-[35%] overflow-hidden bg-surface-container">
-                    <img
-                        alt="ShopEZ Shopping Experience"
-                        className="w-full h-full object-cover object-[18%_center] scale-110"
-                        src="/Login.png"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-tr from-primary/30 via-transparent to-secondary/20" />
-                </section>
-
-                {/* Right Side: Auth Forms */}
-                <section className="w-full md:w-[65%] flex flex-col items-center justify-center p-margin-mobile md:p-8 bg-white py-6">
-                    <div className="w-full max-w-md">
+        <div className="min-h-screen bg-background text-on-surface font-body-md overflow-x-hidden selection:bg-primary-fixed selection:text-primary flex items-center justify-center p-4 py-12 md:py-24">
+            <main className="w-full max-w-md mx-auto bg-white rounded-3xl border border-outline-variant/30 shadow-xl p-8 py-10">
+                <div className="w-full">
                         {/* Logo */}
                         <div className="mb-4">
                             <Link to="/" className="flex items-center gap-2.5 mb-3">
@@ -351,13 +341,12 @@ const AuthCard = ({ mode = 'login' }) => {
                             </p>
                         </footer>
 
-                        <div className="md:hidden mt-6">
+                        <div className="mt-6 text-center">
                             <Link to="/" className="inline-flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors font-semibold text-sm">
                                 <span className="material-symbols-outlined text-[18px]">arrow_back</span> Back to Home
                             </Link>
                         </div>
                     </div>
-                </section>
             </main>
 
             <style>{`

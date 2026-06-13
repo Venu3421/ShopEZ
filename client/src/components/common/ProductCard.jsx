@@ -1,9 +1,12 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
 import { useWishlist } from '../../context/WishlistContext';
 
 const ProductCard = ({ product }) => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const { addToCart } = useCart();
   const { toggleWishlist, isInWishlist } = useWishlist();
   const [heartAnimating, setHeartAnimating] = useState(false);
@@ -15,6 +18,7 @@ const ProductCard = ({ product }) => {
     category,
     price,
     discount,
+    rating,
   } = product;
 
   const hasDiscount = discount && discount > 0;
@@ -27,12 +31,17 @@ const ProductCard = ({ product }) => {
   const handleAddToCart = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    addToCart(product, 'M', 1);
+    const isSizeDisabledCategory = category?.toLowerCase() === 'electronics' || category?.toLowerCase() === 'home decor' || category?.toLowerCase() === 'home & decor';
+    addToCart(product, isSizeDisabledCategory ? '' : 'M', 1);
   };
 
   const handleToggleWishlist = (e) => {
     e.preventDefault();
     e.stopPropagation();
+    if (!user) {
+      navigate('/login');
+      return;
+    }
     toggleWishlist(product);
     setHeartAnimating(true);
     setTimeout(() => setHeartAnimating(false), 300);
@@ -94,15 +103,15 @@ const ProductCard = ({ product }) => {
           <div className="flex items-center justify-between mt-3">
             {hasDiscount ? (
               <div className="flex flex-col">
-                <span className="text-on-surface-variant text-[12px] line-through">${price.toFixed(2)}</span>
-                <span className="font-bold text-headline-sm text-primary">${discountedPrice}</span>
+                <span className="text-on-surface-variant text-[12px] line-through">₹{price.toFixed(2)}</span>
+                <span className="font-bold text-headline-sm text-primary">₹{discountedPrice}</span>
               </div>
             ) : (
-              <span className="font-bold text-headline-sm text-primary">${price?.toFixed(2)}</span>
+              <span className="font-bold text-headline-sm text-primary">₹{price?.toFixed(2)}</span>
             )}
             <div className="flex items-center gap-1 text-tertiary">
               <span className="material-symbols-outlined text-[16px]" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-              <span className="text-label-caps text-on-surface">4.9</span>
+              <span className="text-label-caps text-on-surface">{(rating || 4.5).toFixed(1)}</span>
             </div>
           </div>
         </div>

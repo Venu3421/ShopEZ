@@ -57,7 +57,17 @@ const createProduct = async (req, res) => {
       gender,
       price,
       discount,
+      rating,
+      stock,
+      sizeStock,
     } = req.body;
+
+    let calculatedStock = 0;
+    if (sizeStock && typeof sizeStock === 'object') {
+      calculatedStock = Object.values(sizeStock).reduce((acc, val) => acc + (Number(val) || 0), 0);
+    } else {
+      calculatedStock = Number(stock) || 0;
+    }
 
     const product = await Product.create({
       title,
@@ -69,6 +79,9 @@ const createProduct = async (req, res) => {
       gender,
       price,
       discount,
+      rating: rating ? Number(rating) : 4.5,
+      stock: calculatedStock,
+      sizeStock: sizeStock || {},
     });
 
     res.status(201).json(product);
@@ -88,9 +101,14 @@ const updateProduct = async (req, res) => {
       return res.status(404).json({ message: "Product not found" });
     }
 
+    const updateData = { ...req.body };
+    if (updateData.sizeStock && typeof updateData.sizeStock === 'object') {
+      updateData.stock = Object.values(updateData.sizeStock).reduce((acc, val) => acc + (Number(val) || 0), 0);
+    }
+
     const updatedProduct = await Product.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      updateData,
       { new: true, runValidators: true }
     );
 

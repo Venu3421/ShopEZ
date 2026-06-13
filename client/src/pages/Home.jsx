@@ -12,6 +12,12 @@ const Home = () => {
   const [featuredProducts, setFeaturedProducts] = useState([]);
 
   useEffect(() => {
+    if (user && user.userType === 'admin') {
+      navigate('/admin/dashboard', { replace: true });
+    }
+  }, [user, navigate]);
+
+  useEffect(() => {
     if (products.length > 0) {
       setFeaturedProducts(products.slice(0, 8));
     }

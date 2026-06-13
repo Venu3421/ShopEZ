@@ -11,7 +11,7 @@ const ProductDetails = () => {
   const navigate = useNavigate();
   const { user } = useContext(AuthContext);
   const { addToCart } = useCart();
-  const { removeFromWishlist, isInWishlist } = useWishlist();
+  const { toggleWishlist, isInWishlist } = useWishlist();
 
   const [product, setProduct] = useState(null);
   const [related, setRelated] = useState([]);
@@ -24,6 +24,16 @@ const ProductDetails = () => {
   const [adding, setAdding] = useState(false);
   const [activeTab, setActiveTab] = useState('description');
 
+  const wishlisted = isInWishlist(id);
+
+  const handleToggleWishlist = () => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+    toggleWishlist(product);
+  };
+
   useEffect(() => {
     const fetchProduct = async () => {
       setLoading(true);
@@ -32,7 +42,7 @@ const ProductDetails = () => {
         const { data } = await getProductById(id);
         setProduct(data);
         setMainImage(data.mainImg || '');
-        if (data.sizes?.length) setSelectedSize(data.sizes[0]);
+        // Do not pre-select size by default
         if (data.category) {
           const { data: allProds } = await getAllProducts({ category: data.category });
           setRelated(allProds.filter((p) => p._id !== data._id).slice(0, 4));
@@ -49,12 +59,18 @@ const ProductDetails = () => {
     window.scrollTo(0, 0);
   }, [id]);
 
+  const isSizeDisabledCategory = product?.category?.toLowerCase() === 'electronics' || product?.category?.toLowerCase() === 'home decor' || product?.category?.toLowerCase() === 'home & decor';
+  const showSizeSelector = product?.sizes?.length > 0 && !isSizeDisabledCategory;
+
   const handleAddToCart = async () => {
     if (!user) {
       navigate('/login');
       return;
     }
-    if (!selectedSize && product.sizes?.length) return;
+    if (showSizeSelector && !selectedSize) {
+      alert('Please select a size before adding to cart!');
+      return;
+    }
     setAdding(true);
     try {
       await addToCart(product, selectedSize, quantity);
@@ -64,6 +80,23 @@ const ProductDetails = () => {
       // error handled
     }
     setAdding(false);
+  };
+
+  const handleBuyItNow = async () => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+    if (showSizeSelector && !selectedSize) {
+      alert('Please select a size before proceeding to buy!');
+      return;
+    }
+    try {
+      await addToCart(product, selectedSize, quantity);
+      navigate('/checkout');
+    } catch {
+      // error handled
+    }
   };
 
   const hasDiscount = product?.discount && product.discount > 0;
@@ -147,7 +180,7 @@ const ProductDetails = () => {
               </button>
             ))}
           </div>
-          <div className="flex-1 bg-surface-container rounded-2xl overflow-hidden relative group aspect-[4/5] max-h-[500px] md:max-h-[550px]">
+            <div className="flex-1 bg-surface-container rounded-2xl overflow-hidden relative group aspect-[4/5] max-h-[500px] md:max-h-[550px]">
             <img
               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
               src={mainImage}
@@ -157,8 +190,17 @@ const ProductDetails = () => {
               <button className="bg-surface/80 backdrop-blur-md p-3 rounded-full shadow-lg text-on-surface hover:text-primary transition-colors">
                 <span className="material-symbols-outlined">zoom_in</span>
               </button>
-              <button className="bg-surface/80 backdrop-blur-md p-3 rounded-full shadow-lg text-on-surface hover:text-error transition-colors">
-                <span className="material-symbols-outlined">favorite</span>
+              <button
+                onClick={handleToggleWishlist}
+                className="bg-surface/80 backdrop-blur-md p-3 rounded-full shadow-lg transition-all hover:scale-110 z-10"
+                aria-label={wishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
+              >
+                <span
+                  className={`material-symbols-outlined transition-colors ${wishlisted ? 'text-error' : 'text-on-surface-variant'}`}
+                  style={{ fontVariationSettings: wishlisted ? "'FILL' 1" : "'FILL' 0" }}
+                >
+                  favorite
+                </span>
               </button>
             </div>
           </div>
@@ -175,22 +217,27 @@ const ProductDetails = () => {
 
             <div className="flex items-center gap-4">
               <div className="flex text-tertiary">
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <span key={star} className="material-symbols-outlined" style={{ fontVariationSettings: star <= 4 ? "'FILL' 1" : "'FILL' 0" }}>
-                    {star <= 4 ? 'star' : 'star_half'}
-                  </span>
-                ))}
+                {[1, 2, 3, 4, 5].map((star) => {
+                  const ratingVal = product?.rating || 4.5;
+                  const isFilled = star <= Math.floor(ratingVal);
+                  const isHalf = !isFilled && (star - ratingVal < 1) && (star - ratingVal > 0);
+                  return (
+                    <span key={star} className="material-symbols-outlined" style={{ fontVariationSettings: isFilled ? "'FILL' 1" : "'FILL' 0" }}>
+                      {isFilled ? 'star' : isHalf ? 'star_half' : 'star'}
+                    </span>
+                  );
+                })}
               </div>
-              <span className="font-body-md text-on-surface-variant">4.8 (124 reviews)</span>
+              <span className="font-body-md text-on-surface-variant">{(product?.rating || 4.5).toFixed(1)} (124 reviews)</span>
             </div>
 
             <div className="flex items-baseline gap-4 border-b border-outline-variant pb-6">
               <span className="font-headline-md text-headline-md text-on-surface">
-                ${hasDiscount ? discountedPrice : product?.price}
+                ₹{hasDiscount ? discountedPrice : product?.price}
               </span>
               {hasDiscount && (
                 <>
-                  <span className="font-body-lg text-on-surface-variant line-through">${product?.price}</span>
+                  <span className="font-body-lg text-on-surface-variant line-through">₹{product?.price}</span>
                   <span className="font-label-caps text-label-caps text-error bg-error/10 px-2 py-1 rounded">Save {product?.discount}%</span>
                 </>
               )}
@@ -207,24 +254,51 @@ const ProductDetails = () => {
             </div>
 
             {/* Size Selector */}
-            {product?.sizes?.length > 0 && (
+            {showSizeSelector && (
               <div className="flex flex-col gap-4">
                 <label className="font-label-caps text-label-caps text-on-surface-variant uppercase">Select Size</label>
                 <div className="flex gap-2">
-                  {product.sizes.map((size) => (
-                    <button
-                      key={size}
-                      onClick={() => setSelectedSize(size)}
-                      className={`min-w-[48px] h-12 px-4 rounded-xl font-bold text-sm transition-all duration-200 ${
-                        selectedSize === size
-                          ? 'bg-gradient-to-r from-primary to-secondary text-white shadow-md'
-                          : 'bg-surface-container-low text-on-surface border border-outline-variant/30 hover:border-primary/50'
-                      }`}
-                    >
-                      {size}
-                    </button>
-                  ))}
+                  {product.sizes.map((size) => {
+                    const stockVal = product.sizeStock
+                      ? (product.sizeStock instanceof Map
+                        ? product.sizeStock.get(size)
+                        : product.sizeStock[size])
+                      : 10;
+                    const isOutOfStock = stockVal !== undefined && stockVal <= 0;
+
+                    return (
+                      <button
+                        key={size}
+                        disabled={isOutOfStock}
+                        onClick={() => setSelectedSize(size)}
+                        className={`min-w-[48px] h-12 px-4 rounded-xl font-bold text-sm transition-all duration-200 ${
+                          isOutOfStock
+                            ? 'opacity-40 cursor-not-allowed bg-surface-container-highest/20 text-on-surface-variant/40 border border-outline-variant/20 line-through'
+                            : selectedSize === size
+                            ? 'bg-gradient-to-r from-primary to-secondary text-white shadow-md'
+                            : 'bg-surface-container-low text-on-surface border border-outline-variant/30 hover:border-primary/50'
+                        }`}
+                      >
+                        {size}
+                      </button>
+                    );
+                  })}
                 </div>
+                {selectedSize && (
+                  <p className="text-xs font-semibold text-on-surface-variant mt-1">
+                    {(() => {
+                      const stockVal = product.sizeStock
+                        ? (product.sizeStock instanceof Map
+                          ? product.sizeStock.get(selectedSize)
+                          : product.sizeStock[selectedSize])
+                        : 10;
+                      if (stockVal <= 5) {
+                        return <span className="text-error font-bold flex items-center gap-1"><span className="material-symbols-outlined text-sm">warning</span> Only {stockVal} pieces left!</span>;
+                      }
+                      return <span className="text-emerald-500 font-bold">{stockVal} pieces available in stock</span>;
+                    })()}
+                  </p>
+                )}
               </div>
             )}
 
@@ -251,7 +325,10 @@ const ProductDetails = () => {
                   </>
                 )}
               </button>
-              <button className="w-full py-5 rounded-xl border-2 border-primary text-primary font-bold hover:bg-primary/5 active:scale-[0.98] transition-all">
+              <button
+                onClick={handleBuyItNow}
+                className="w-full py-5 rounded-xl border-2 border-primary text-primary font-bold hover:bg-primary/5 active:scale-[0.98] transition-all"
+              >
                 Buy It Now
               </button>
             </div>
@@ -403,18 +480,16 @@ const ProductDetails = () => {
 
       {/* Similar Products */}
       {related.length > 0 && (
-        <section className="mt-10">
+        <section className="mt-10 border-t border-outline-variant/20 pt-10">
           <div className="flex justify-between items-end mb-stack-lg">
             <h2 className="font-headline-md text-headline-md">Similar Products</h2>
             <Link to="/products" className="text-primary font-bold flex items-center gap-1 hover:underline">
               View All <span className="material-symbols-outlined">arrow_right_alt</span>
             </Link>
           </div>
-          <div className="flex gap-gutter overflow-x-auto no-scrollbar pb-8 -mx-4 px-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-gutter max-w-4xl">
             {related.map((p) => (
-              <div key={p._id} className="min-w-[280px] flex-shrink-0">
-                <ProductCard product={p} />
-              </div>
+              <ProductCard key={p._id} product={p} />
             ))}
           </div>
         </section>

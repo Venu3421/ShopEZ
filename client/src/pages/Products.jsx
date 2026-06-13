@@ -84,7 +84,7 @@ const Products = () => {
     return products.filter((p) => p.category === catName).length;
   };
 
-  const FilterSidebar = ({ mobile = false }) => (
+  const renderFilterSidebar = (mobile = false) => (
     <div className={`${mobile ? '' : 'sticky top-24'} space-y-6`}>
       <div className="bg-white border border-outline-variant/30 rounded-3xl p-6 space-y-6 shadow-sm">
         <div className="flex items-center justify-between border-b border-outline-variant/20 pb-4">
@@ -178,8 +178,8 @@ const Products = () => {
               className="w-full h-1.5 bg-surface-variant rounded-lg appearance-none cursor-pointer accent-primary focus:outline-none"
             />
             <div className="flex items-center justify-between text-body-md text-on-surface">
-              <span>$0</span>
-              <span className="font-bold text-primary">${priceRange[1].toLocaleString()}</span>
+              <span>₹0</span>
+              <span className="font-bold text-primary">₹{priceRange[1].toLocaleString()}</span>
             </div>
           </div>
         </div>
@@ -229,14 +229,14 @@ const Products = () => {
                 <span className="material-symbols-outlined">close</span>
               </button>
             </div>
-            <FilterSidebar mobile />
+            {renderFilterSidebar(true)}
           </div>
         </div>
       )}
 
       <div className="flex flex-col lg:flex-row gap-gutter">
         <aside className="hidden lg:block w-72 flex-shrink-0">
-          <FilterSidebar />
+          {renderFilterSidebar(false)}
         </aside>
 
         <div className="flex-1 space-y-stack-md">
