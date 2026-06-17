@@ -49,15 +49,32 @@ ShopEZ/
 │   ├── vite.config.js
 │   └── package.json
 │
-└── server/                 # Backend REST API Application
-    ├── config/             # DB connection config
-    ├── controllers/        # Express request controllers (Auth, Products, Orders, Admin)
-    ├── models/             # Mongoose schemas (User, Product, Order, Cart)
-    ├── routes/             # Express route mappings
-    ├── seed.js             # Initial database seeding script
-    ├── index.js            # Server entry point
-    └── package.json
+├── server/                 # Backend REST API Application
+│   ├── config/             # DB connection config
+│   ├── controllers/        # Express request controllers (Auth, Products, Orders, Admin)
+│   ├── models/             # Mongoose schemas (User, Product, Order, Cart)
+│   ├── routes/             # Express route mappings
+│   ├── seed.js             # Initial database seeding script
+│   ├── index.js            # Server entry point
+│   └── package.json
+│
+└── MERN Phase Wise/        # Phase-wise Project Documentation & Templates
+    ├── Phase Wise Templets/ # SDLC templates for each phase (Brainstorming, Design, Dev, etc.)
+    └── Project Documentation/# MERN stack project reference materials & guidebooks
 ```
+
+---
+
+## 📁 MERN Phase-Wise Documentation
+
+The project includes structured SDLC planning and template files located in the `MERN Phase Wise/` directory, mapping out the entire lifecycle of the ShopEZ platform:
+
+1. **Brainstorming & Ideation Phase**: Empathy maps, problem statements, and brainstorming templates.
+2. **Requirement Analysis**: Data Flow Diagrams (DFDs), User Stories, and technology stack templates.
+3. **Project Planning Phase**: Comprehensive project planning schedules and timelines.
+4. **Project Design Phase**: Architecture layouts, proposed solution templates, and problem-solution fit sheets.
+5. **Project Development & Testing**: User Acceptance Testing (UAT) templates and specifications.
+6. **Comprehensive Documentation**: Complete guide on Full Stack Development with the MERN stack (`Full Stack Development with MERN.pdf`).
 
 ---
 
@@ -106,7 +123,7 @@ ShopEZ/
    ```bash
    npm run dev
    ```
-4. Open your browser and navigate to `http://localhost:5173` to interact with the web app.
+4. Open your browser and navigate to `http://localhost:3001` to interact with the web app.
 
 ---
 
